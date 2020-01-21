@@ -1,0 +1,41 @@
+{
+  "name": "puppeter-cluster-pdf-converter",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npx ts-node-dev --respawn --transpileOnly -r dotenv/config ./src/server.ts",
+    "build": "tsc -b",
+    "clean": "rm -rf ./build/*",
+    "start": "node ./build/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kintuda/puppeter-cluster-pdf-converter.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Kintuda/puppeter-cluster-pdf-converter/issues"
+  },
+  "homepage": "https://github.com/Kintuda/puppeter-cluster-pdf-converter#readme",
+  "devDependencies": {
+    "@types/aws-sdk": "^2.7.0",
+    "@types/nanoid": "^2.1.0",
+    "@types/node": "^13.1.8",
+    "@types/pino": "^5.15.3",
+    "pino-pretty": "^3.5.0",
+    "ts-node-dev": "^1.0.0-pre.44",
+    "typescript": "^3.7.5"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.607.0",
+    "axios": "^0.19.1",
+    "nanoid": "^2.1.9",
+    "pino": "^5.16.0",
+    "puppeteer": "^2.0.0",
+    "puppeteer-cluster": "^0.18.0",
+    "sqs-consumer": "^5.4.0"
+  }
+}
