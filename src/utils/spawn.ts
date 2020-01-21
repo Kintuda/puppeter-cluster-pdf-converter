@@ -14,6 +14,8 @@ const spawnCluster = async (config?: Record<string, string>) => {
         await page.goto(url, { waitUntil: 'networkidle2', timeout: CONFIG.puppeteer.timeout })
         return page.pdf(CONFIG.pageOptions)
     })
+
+    return cluster
 }
 
 export default spawnCluster()

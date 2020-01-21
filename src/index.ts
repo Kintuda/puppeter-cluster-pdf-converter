@@ -3,6 +3,7 @@ import SQS from 'aws-sdk/clients/sqs'
 import http from 'http'
 import CONFIG from './config/bootstrap'
 import Logger from './utils/logger'
+import processHandle from './process'
 
 const agent = new http.Agent({ keepAlive: true })
 const sqs = new SQS({ region: CONFIG.aws.region, apiVersion: '2012-11-05', httpOptions: { agent } })
@@ -14,7 +15,7 @@ const defaultOptions: ConsumerOptions = {
     queueUrl: CONFIG.aws.mainQueue,
     visibilityTimeout: 30,
     pollingWaitTimeMs: 100,
-    handleMessage: 
+    handleMessage: processHandle
 }
 
 const consumer: Consumer = Consumer.create(defaultOptions)
