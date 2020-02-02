@@ -1,36 +1,30 @@
-import { Consumer, ConsumerOptions } from 'sqs-consumer'
-import SQS from 'aws-sdk/clients/sqs'
-import http from 'http'
-import CONFIG from './config/bootstrap'
+import CONFIG, { ensureEnvs } from './config/bootstrap'
+import { hasMessages, receiveMessages } from './utils/sqs'
 import Logger from './utils/logger'
-import processHandle from './process'
+import processMessage from './process'
 
-const agent = new http.Agent({ keepAlive: true })
-const sqs = new SQS({ region: CONFIG.aws.region, apiVersion: '2012-11-05', httpOptions: { agent } })
-
-const defaultOptions: ConsumerOptions = {
-    batchSize: CONFIG.puppeteer.maxConcurrency,
-    region: CONFIG.aws.region,
-    sqs: sqs,
-    queueUrl: CONFIG.aws.mainQueue,
-    visibilityTimeout: 30,
-    pollingWaitTimeMs: 100,
-    handleMessage: processHandle
+const poolMessages = async () => {
+    const message = await receiveMessages(CONFIG.aws.mainQueue)
+    console.log(message);
+    try {
+        if (hasMessages(message)) {
+            await processMessage(message)
+        }
+        return poolMessages()
+    } catch (error) {
+        Logger.error(`Error processing messages, ${error && error.message}`)
+        return poolMessages()
+    }
 }
 
-const consumer: Consumer = Consumer.create(defaultOptions)
+const startProcedure = async () => {
+    try {
+        ensureEnvs()
+        await poolMessages()
+    } catch (error) {
+        Logger.error(`Error pooling messages ${error && error.message}`, { stack: error.stack })
+        throw error
+    }
+}
 
-consumer.on('error', (error) => {
-    Logger.error(`Error pooling messages: ${error && error.message}`, { stack: error.stack })
-})
-
-consumer.on('processing_error', (error, message) => {
-    Logger.error(`Error while processing message: ${message}: ${error && error.message}`, { stack: error.stack })
-})
-
-consumer.on('timeout_error', (error) => {
-    Logger.error(`Timeout error: ${error && error.message} - DEFAULT TIMEOUT: ${CONFIG.puppeteer.timeout}`, { stack: error.stack })
-})
-
-consumer.start()
-
+startProcedure().catch(error => process.exit(1))

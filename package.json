@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "npx ts-node-dev --respawn --transpileOnly -r dotenv/config ./src/server.ts",
+    "dev": "npx ts-node-dev --respawn --transpileOnly -r dotenv/config ./src/index.ts",
     "build": "tsc -b",
     "clean": "rm -rf ./build/*",
     "start": "node ./build/server.js"
@@ -25,6 +25,7 @@
     "@types/nanoid": "^2.1.0",
     "@types/node": "^13.1.8",
     "@types/pino": "^5.15.3",
+    "dotenv": "^8.2.0",
     "pino-pretty": "^3.5.0",
     "ts-node-dev": "^1.0.0-pre.44",
     "typescript": "^3.7.5"
@@ -35,7 +36,6 @@
     "nanoid": "^2.1.9",
     "pino": "^5.16.0",
     "puppeteer": "^2.0.0",
-    "puppeteer-cluster": "^0.18.0",
-    "sqs-consumer": "^5.4.0"
+    "puppeteer-cluster": "^0.18.0"
   }
 }
