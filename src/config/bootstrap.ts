@@ -53,8 +53,10 @@ const config: Config = {
 export const ensureEnvs = () => [
     config.env,
     config.aws.mainQueue,
-    config.puppeteer.maxConcurrency
-    // config.aws.mainBucket
+    config.puppeteer.maxConcurrency,
+    config.aws.mainBucket
 ].map(env => assert(env, `Missing required env`))
+
+export const isLocal = () => NODE_ENV === 'development'
 
 export default config

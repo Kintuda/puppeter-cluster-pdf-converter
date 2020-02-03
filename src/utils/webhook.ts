@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios'
 
 
-const triggerWebhook = async (url: string, hash: string) => {
+export const triggerWebhook = async (url: string, hash: string) => {
     const config: AxiosRequestConfig = {
         method: 'GET',
         url: url,
@@ -10,7 +10,6 @@ const triggerWebhook = async (url: string, hash: string) => {
             hash: hash
         }
     }
+    console.log(config);
     return axios(config)
 }
-
-export default triggerWebhook

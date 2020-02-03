@@ -1,44 +1,39 @@
 import { Cluster } from 'puppeteer-cluster'
 import CONFIG from '../config/bootstrap'
+import { uploadContent } from './s3'
+import { triggerWebhook } from './webhook'
+import logger from './logger'
 
-export default class PuppeteerCluster {
-    private config: {};
-    private cluster: Cluster<any, any> = null;
-
-    constructor(config?: Record<string, string>){
-        this.config = {
-            concurrency: Cluster.CONCURRENCY_CONTEXT,
-            maxConcurrency: CONFIG.puppeteer.maxConcurrency,
-            puppeteerOptions: CONFIG.puppeteer.args,
-            monitor: CONFIG.env === 'development',
-            ...config
-        }
+const spawnCluster = async (config?: Record<string, string>) => {
+    const defaultConfig = {
+        concurrency: Cluster.CONCURRENCY_CONTEXT,
+        maxConcurrency: CONFIG.puppeteer.maxConcurrency,
+        puppeteerOptions: CONFIG.puppeteer.args,
+        monitor: CONFIG.env === 'development',
+        ...config
     }
-
-    public static initCluster = async() => {
-        this.cluster =  await Cluster.launch(this.config)
-        await this.cluster.task(async ({ page, data: url }) => {
+    const cluster = await Cluster.launch(defaultConfig)
+    await cluster.task(async ({ page, data, worker }) => {
+        console.log(worker);
+        try {
+            const { url, callbackUrl } = data
             await page.goto(url, { waitUntil: 'networkidle2', timeout: CONFIG.puppeteer.timeout })
-            return page.pdf(CONFIG.pageOptions)
-        })
-    }
+            const result = await page.pdf(CONFIG.pageOptions)
+            const key = await uploadContent(result)
+            if (callbackUrl) {
+                await triggerWebhook(callbackUrl, key)
+            }
+            return key
+        } catch (error) {
+            logger.error(`Error converting ${data} - ${error && error.message}`)
+        }
+    })
+
+    cluster.on('taskerror', (err, data) => {
+        logger.error(`Task error, ${data} - ${err.message}`);
+    });
+
+    return cluster
 }
 
-// const spawnCluster = async (config?: Record<string, string>) => {
-//     // const defaultConfig = {
-//     //     concurrency: Cluster.CONCURRENCY_CONTEXT,
-//     //     maxConcurrency: CONFIG.puppeteer.maxConcurrency,
-//     //     puppeteerOptions: CONFIG.puppeteer.args,
-//     //     monitor: CONFIG.env === 'development',
-//     //     ...config
-//     // }
-//     const cluster = await Cluster.launch(defaultConfig)
-//     await cluster.task(async ({ page, data: url }) => {
-//         await page.goto(url, { waitUntil: 'networkidle2', timeout: CONFIG.puppeteer.timeout })
-//         return page.pdf(CONFIG.pageOptions)
-//     })
-
-//     return cluster
-// }
-
-// export default spawnCluster()
+export default spawnCluster
