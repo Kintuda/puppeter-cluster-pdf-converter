@@ -1,14 +1,13 @@
 import CONFIG, { ensureEnvs } from './config/bootstrap'
-import { hasMessages, receiveMessages } from './utils/sqs'
+import { receiveMessages } from './utils/sqs'
 import Logger from './utils/logger'
 import processMessage from './process'
 
-const poolMessages = async () => {
+const poolMessages = async (): Promise<Function> => {
     const message = await receiveMessages(CONFIG.aws.mainQueue)
-    console.log(message);
     try {
-        if (hasMessages(message)) {
-            await processMessage(message)
+        if (message && message.Messages && message.Messages.length > 0) {
+            await processMessage(message.Messages[0].Body!)
         }
         return poolMessages()
     } catch (error) {
@@ -19,6 +18,7 @@ const poolMessages = async () => {
 
 const startProcedure = async () => {
     try {
+        Logger.info(`Worker started reciving messages, ENV=${CONFIG.env}`)
         ensureEnvs()
         await poolMessages()
     } catch (error) {
