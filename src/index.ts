@@ -1,5 +1,5 @@
 import CONFIG, { ensureEnvs } from './config/bootstrap'
-import { receiveMessages } from './utils/sqs'
+import { receiveMessages,deleteMessage } from './utils/sqs'
 import Logger from './utils/logger'
 import processMessage from './process'
 
@@ -7,7 +7,11 @@ const poolMessages = async (): Promise<Function> => {
     const message = await receiveMessages(CONFIG.aws.mainQueue)
     try {
         if (message && message.Messages && message.Messages.length > 0) {
-            await processMessage(message.Messages[0].Body!)
+            const { Body, ReceiptHandle } = message.Messages[0]
+            Logger.info(`Processing message: ${Body}`)
+            await processMessage(Body!)
+            await deleteMessage(CONFIG.aws.mainQueue, ReceiptHandle!)
+
         }
         return poolMessages()
     } catch (error) {
