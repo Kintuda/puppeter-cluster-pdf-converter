@@ -38,7 +38,6 @@ const config: Config = {
     puppeteer: {
         maxConcurrency: parseInt(MAX_CONCURRENCY || '2'),
         args: [
-            '--no-sandbox',
             '--disable-setuid-sandbox',
             '--disable-gpu'
         ],
