@@ -8,13 +8,14 @@ const spawnCluster = async (config?: Record<string, string>) => {
     const defaultConfig = {
         concurrency: Cluster.CONCURRENCY_CONTEXT,
         maxConcurrency: CONFIG.puppeteer.maxConcurrency,
-        puppeteerOptions: CONFIG.puppeteer.args,
+        puppeteerOptions: {
+            args: CONFIG.puppeteer.args
+        },
         monitor: CONFIG.env === 'development',
         ...config
     }
     const cluster = await Cluster.launch(defaultConfig)
-    await cluster.task(async ({ page, data, worker }) => {
-        console.log(worker);
+    await cluster.task(async ({ page, data }) => {
         try {
             const { url, callbackUrl } = data
             await page.goto(url, { waitUntil: 'networkidle2', timeout: CONFIG.puppeteer.timeout })
@@ -29,7 +30,7 @@ const spawnCluster = async (config?: Record<string, string>) => {
         }
     })
 
-    cluster.on('taskerror', (err, data) => {
+    cluster.on('taskerror', (err: Error, data: {}) => {
         logger.error(`Task error, ${data} - ${err.message}`);
     });
 

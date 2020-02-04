@@ -1,4 +1,3 @@
-import cluster from './utils/spawn'
 import { Cluster } from 'puppeteer-cluster'
 import { parseJson } from './utils/json'
 
